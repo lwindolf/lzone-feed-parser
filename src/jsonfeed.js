@@ -7,7 +7,7 @@ import { DateParser } from './date.js';
 class JSONFeedParser {
     static id = 'json';
 
-    static parseItem(i) {
+    static parseItem(i, ctxt) {
         let item = {
             title       : i.title,
             description : i.content_html || i.content_text || i.summary,
@@ -19,7 +19,7 @@ class JSONFeedParser {
         if (i.attachments && Array.isArray(i.attachments))
             i.attachments.forEach(n => item.addMedia(n.url, n.mime_type));
 
-        this.addItem(item);
+        ctxt.feed.newItems.push(item);
     }
 
     static parse(str) {
@@ -31,11 +31,11 @@ class JSONFeedParser {
             icon        : data.icon || data.favicon,
             description : data.description,
             homepage    : data.home_page_url || data.feed_url,
-            netItems    : []
+            newItems    : []
         };
 
         if (data.items && Array.isArray(data.items))
-                data.items.forEach(this.parseItem, feed);
+                data.items.forEach(this.parseItem, { feed });
 
         return feed;
     }
