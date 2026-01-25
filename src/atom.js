@@ -23,7 +23,7 @@ class AtomParser {
                         // Always prefer those types of links
                         if((ctxt.sourceType !== 'alternate_or_text/html') &&
                             ((rel && rel === 'alternate') ||
-                             (self && type === 'text/html'))) {
+                             (rel && rel === 'self' && type === 'text/html'))) {
                                 ctxt.sourceType = 'alternate_or_text/html';
                                 ctxt.source = href;
                                 return
