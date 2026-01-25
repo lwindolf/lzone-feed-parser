@@ -3,6 +3,7 @@
 // RSS 1.1 and 2.0 parser, 0.9x is not supported
 // RSS 1.0 is parsed in rdf.js
 
+import { FeedParser } from './parser.js';
 import { DateParser } from './date.js';
 import { NamespaceParser } from './namespace.js'
 import { XPath } from './xpath.js';
@@ -16,6 +17,9 @@ class RSSParser {
     ];
 
     static parseItem(node, ctxt) {
+        if (ctxt.feed.itemCount >= FeedParser.maxItems)
+            return;
+
         let item = {
             title       : XPath.lookup(node, 'title'),
             description : XPath.lookup(node, 'description'),
@@ -44,11 +48,13 @@ class RSSParser {
         const root = NamespaceParser.getRootNode(doc);
         let feed = {
             error    : XPath.lookup(root, '/parsererror'),
+            ns       : NamespaceParser.getNamespaces(root, str),
             newItems : []
         };
 
         // RSS 1.1
         if (doc.firstChild.nodeName === 'Channel') {
+            feed.type        = 'rss1.1';
             feed.title       = XPath.lookup(root, '/Channel/title');
             feed.description = XPath.lookup(root, '/Channel/description');
             feed.homepage    = XPath.lookup(root, '/Channel/link');
@@ -58,6 +64,7 @@ class RSSParser {
 
         // RSS 2.0
         if (doc.firstChild.nodeName === 'rss') {
+            feed.type        = 'rss2.0';
             feed.title       = XPath.lookup(root, '/rss/channel/title');
             feed.description = XPath.lookup(root, '/rss/channel/description');
             feed.homepage    = XPath.lookup(root, '/rss/channel/link');

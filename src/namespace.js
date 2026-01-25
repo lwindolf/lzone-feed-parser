@@ -25,9 +25,10 @@ export class NamespaceParser {
      * Returns list of all namespaces defined in root node
      * 
      * @param {*} root    the DOM root
+     * @param {*} str     optional string to match against to really check if a namespace is used
      * @returns           list of namespace strings
      */
-    static getNamespaces(root) {
+    static getNamespaces(root, str = undefined) {
         const nsList = [];
         if (!root.attributes) {
             console.debug("No attributes!", root);
@@ -36,7 +37,10 @@ export class NamespaceParser {
         for (let i = 0; i < root.attributes.length; i++) {
             const attr = root.attributes[i];
             if (attr.name.startsWith('xmlns:')) {
-                nsList.push(attr.name.substring(6));
+                const name = attr.name.substring(6);
+                if (str && !str.includes(name + ":"))
+                    continue;
+                nsList.push(name);
             }
         }
         return nsList;
@@ -81,13 +85,7 @@ export class NamespaceParser {
     static parseItem(root, node, item) {
         // Make list of all namespaces defined in root node, we must only
         // match for present namespaces
-        const nsList = [];
-        for (let i = 0; i < root.attributes.length; i++) {
-            const attr = root.attributes[i];
-            if (attr.name.startsWith('xmlns:')) {
-                nsList.push(attr.name.substring(6));
-            }
-        }
+        const nsList = this.getNamespaces(root);
 
         // Dublin Core support
         if (nsList.includes('dc')) {

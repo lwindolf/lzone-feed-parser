@@ -10,6 +10,7 @@ import { AtomParser } from './atom.js';
 import { RSSParser } from './rss.js';
 import { RDFParser } from './rdf.js';
 import { JSONFeedParser } from './jsonfeed.js';
+import { NamespaceParser } from './namespace.js';
 
 // Return a parser class matching the given document string or undefined
 function parserAutoDiscover(str) {
@@ -26,13 +27,14 @@ function parserAutoDiscover(str) {
     let parsers = [AtomParser, RSSParser, RDFParser];
     const parser = new window.DOMParser();
     const doc = parser.parseFromString(str, 'application/xml');
+    let root = NamespaceParser.getRootNode(doc);
 
     for (let i = 0; i < parsers.length; i++) {
         for (let j = 0; j < parsers[i].autoDiscover.length; j++) {
             try {
-                if (XPath.lookup(doc.firstChild, parsers[i].autoDiscover[j])) {
+                //console.info(`-> trying ${parsers[i].name} with ${parsers[i].autoDiscover[j]}`);
+                if (XPath.lookup(root, parsers[i].autoDiscover[j]))
                     return parsers[i];
-                }
             } catch(e) {
                 // ignore
             }

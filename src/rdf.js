@@ -2,16 +2,20 @@
 
 // RSS 1.0 parser
 
+import { FeedParser } from './parser.js';
 import { NamespaceParser } from './namespace.js'
 import { XPath } from './xpath.js';
 
 class RDFParser {
-	static id = 'rdf';
+	static id = 'rss1.0';
 	static autoDiscover = [
 		'/rdf:RDF/ns:channel'
 	];
 
 	static parseItem(node, ctxt) {
+		if (ctxt.feed.itemCount >= FeedParser.maxItems)
+			return;
+
 		let item = {
 			title       : XPath.lookup(node, 'ns:title'),
 			description : XPath.lookup(node, 'ns:description'),
@@ -34,6 +38,8 @@ class RDFParser {
 
 		// RSS 1.0
 		if (doc.firstChild.nodeName === 'rdf:RDF') {
+			feed.type        = this.id,
+			feed.ns          = NamespaceParser.getNamespaces(root, str);
 			feed.title       = XPath.lookup(root, '/rdf:RDF/ns:channel/ns:title');
 			feed.description = XPath.lookup(root, '/rdf:RDF/ns:channel/ns:description');
 			feed.homepage    = XPath.lookup(root, '/rdf:RDF/ns:channel/ns:link');

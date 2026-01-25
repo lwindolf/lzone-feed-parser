@@ -2,12 +2,16 @@
 
 // https://www.jsonfeed.org/version/1.1/
 
+import { FeedParser } from './parser.js';
 import { DateParser } from './date.js';
 
 class JSONFeedParser {
     static id = 'json';
 
     static parseItem(i, ctxt) {
+        if (ctxt.feed.itemCount >= FeedParser.maxItems)
+            return;
+
         let item = {
             title       : i.title,
             description : i.content_html || i.content_text || i.summary,
@@ -17,7 +21,7 @@ class JSONFeedParser {
         };
 
         if (i.attachments && Array.isArray(i.attachments))
-            i.attachments.forEach(n => item.addMedia(n.url, n.mime_type));
+            i.attachments.forEach(n => addMedia(item, n.url, n.mime_type));
 
         ctxt.feed.newItems.push(item);
     }

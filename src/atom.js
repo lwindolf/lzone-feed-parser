@@ -4,6 +4,7 @@
 //
 // Specification https://www.ietf.org/rfc/rfc4287.txt
 
+import { FeedParser } from './parser.js';
 import { DateParser } from './date.js';
 import { NamespaceParser } from './namespace.js'
 import { XPath } from './xpath.js';
@@ -58,6 +59,9 @@ class AtomParser {
         }
 
         static parseEntry(node, ctxt) {
+                if (ctxt.feed.itemCount >= FeedParser.maxItems)
+                        return;
+
                 let item = {
                         title       : XPath.lookup(node, 'ns:title'),
                         description : XPath.lookup(node, 'ns:summary'),
@@ -80,6 +84,8 @@ class AtomParser {
                 const root = NamespaceParser.getRootNode(doc);
 
                 let feed = {
+                        type        : this.id,
+                        ns          : NamespaceParser.getNamespaces(root, str),
                         error       : XPath.lookup(root, '/parsererror'),
                         title       : XPath.lookup(root, '/ns:feed/ns:title'),
                         icon        : XPath.lookup(root, '/ns:feed/ns:icon'),
