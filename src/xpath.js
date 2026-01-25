@@ -40,7 +40,7 @@ class XPath {
                 try{
                         n = XPath.lookupNode(node, expr);
                 } catch(e) {
-                        console.error(e);
+                        console.error(`Error looking up XPath expression "${expr}"`, e);
                 }
                 return n ? n.textContent : undefined;
         }

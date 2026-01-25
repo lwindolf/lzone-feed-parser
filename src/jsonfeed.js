@@ -4,6 +4,7 @@
 
 import { FeedParser } from './parser.js';
 import { DateParser } from './date.js';
+import { addMedia } from './enclosure.js';
 
 class JSONFeedParser {
     static id = 'json';

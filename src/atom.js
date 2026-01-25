@@ -94,6 +94,7 @@ class AtomParser {
                                       XPath.lookup(root, "/ns:feed/ns:link/@href"),
                         newItems    : []
                 };
+                NamespaceParser.parseFeed(root, "/ns:feed", feed);
 
                 XPath.foreach(root, '/ns:feed/ns:entry', this.parseEntry, { root, feed });
 

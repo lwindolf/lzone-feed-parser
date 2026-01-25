@@ -16,6 +16,7 @@
 import { XPath } from './xpath.js';
 
 class Favicon {
+    // we prefer XPath
     static searches = [
         { type: "MS Tile",          order: 2, xpath: "/html/head/meta[@name='msapplication-TileImage']/@href" },
         { type: "Safari Mask",      order: 3, xpath: "/html/head/link[@rel='mask-icon']/@href" },
@@ -27,8 +28,25 @@ class Favicon {
         { type: "Apple small",      order: 7, xpath: "/html/head/link[@rel='apple-touch-icon' or @rel='apple-touch-icon-precomposed'][@sizes]/@href" }
     ].sort((a, b) => (a.order - b.order));
 
-    static async discover(url, fetchOptions = {}) {
+    // but can fallback to regex fuzzy matches
+    static fuzzyExtraction = [
+        { type: "MS Tile",          order: 2, matchRegex: /<meta\s+name=.msapplication-TileImage.\s+[^>]+>/ },
+        { type: "Safari Mask",      order: 3, matchRegex: /<link\s+rel=.mask-icon.\s+[^>]+>/ },
+        { type: "large icon",       order: 0, matchRegex: /<link\s+rel=.icon.\s+[^>]+sizes=['"](192x192|144x144|128x128)['"]\s+[^>]+>/ },
+        { type: "small icon",       order: 5, matchRegex: /<link\s+rel=.icon.\s+[^>]+sizes=[^>]+>/ },
+        { type: "favicon",          order: 8, matchRegex: /<link\s+rel=.icon.\s+[^>]+>/ },
+        { type: "Apple touch",      order: 1, matchRegex: /<link\s+rel=.apple-touch-icon.\s+[^>]+sizes=['"](180x180|152x152|144x144|120x120)['"]>/ },
+        { type: "Apple no size",    order: 6, matchRegex: /<link\s+rel=.apple-touch-icon.\s+[^>]+>/ },
+        { type: "Apple small",      order: 7, matchRegex: /<link\s+rel=.apple-touch-icon.\s+[^>]+sizes=[^>]+>/ }
+    ].sort((a, b) => (a.order - b.order));
+
+    static hrefExtractRegex = new RegExp(`href=['"]([^'"]+)['"]`);
+
+    static async discover(url, fetchOptions) {
+        let html;
         let result;
+
+        console.log(`favicon discovery for ${url}`);
 
         try {
             // Parse HTML
@@ -39,6 +57,8 @@ class Favicon {
                 });
 
             if(doc) {
+                console.log("favicon discovery HTML parse success");
+
                 // DOCTYPE node is first child when parsing HTML5, we need to 
                 // find the <html> root node in this case
                 let root = doc.firstChild;
@@ -47,6 +67,8 @@ class Favicon {
                 }
 
                 if(root) {
+                    console.log("favicon discovery root element found");
+
                     // Check all XPath search pattern
                     for(let i = 0; i < Favicon.searches.length; i++) {
                         result = XPath.lookup(root, Favicon.searches[i].xpath)
@@ -55,8 +77,23 @@ class Favicon {
                     }
                 }
             }
-        // eslint-disable-next-line no-empty
-        } catch { }
+        } catch(e) {
+            console.log("favicon discovery via XPath failed", e);
+        }
+
+        if (!result && html) {
+            console.log("favicon discovery via regex fuzzy matches");
+            for(let i = 0; i < Favicon.fuzzyExtraction.length; i++) {
+                console.log("favicon discovery test for", Favicon.fuzzyExtraction[i].type);
+                let match = Favicon.fuzzyExtraction[i].matchRegex.exec(html);
+                if(match) {
+                    console.log("favicon discovery match for ", match[0]);
+                    match = Favicon.hrefExtractRegex.exec(match[0]);
+                    result = match ? match[1] : null;
+                    break;
+                }
+            }
+        }
 
         // If nothing found see if there is a 'favicon.ico' on the homepage
         if(!result)
@@ -65,10 +102,18 @@ class Favicon {
                 .then(() => url + '/favicon.ico');
 
         if(result) {
+            console.log(`favicon discovery found '${result}'`);
             if(result.includes('://'))
                 return result;
-            else
-                return url + '/' + result;
+            else {
+                // FIXME: support base URL + absolute path (e.g. for rbb24 favicon)
+                if(result.startsWith('/'))
+                    return url + result;
+                else
+                    return url + '/' + result;
+            }
+        } else {
+            console.log("favicon discovery nothing found");
         }
     }
 }

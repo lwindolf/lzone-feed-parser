@@ -50,7 +50,7 @@ test("RSS 1.0 auto discover", () => {
           </item>
   </rdf:RDF>`);
 
-  expect(p.id).toBe('rdf');
+  expect(p.id).toBe('rss1.0');
 });
 
 test("RSS 1.1 auto discover", () => {

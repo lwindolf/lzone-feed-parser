@@ -25,14 +25,13 @@ function parserAutoDiscover(str) {
     }
 
     let parsers = [AtomParser, RSSParser, RDFParser];
-    const parser = new window.DOMParser();
+    const parser = new DOMParser();
     const doc = parser.parseFromString(str, 'application/xml');
     let root = NamespaceParser.getRootNode(doc);
 
     for (let i = 0; i < parsers.length; i++) {
         for (let j = 0; j < parsers[i].autoDiscover.length; j++) {
             try {
-                //console.info(`-> trying ${parsers[i].name} with ${parsers[i].autoDiscover[j]}`);
                 if (XPath.lookup(root, parsers[i].autoDiscover[j]))
                     return parsers[i];
             } catch(e) {
@@ -49,7 +48,7 @@ function linkAutoDiscover(str, baseURL) {
     
     // Try to parse as HTML
     try {
-        doc = new window.DOMParser().parseFromString(str, 'text/html');
+        doc = new DOMParser().parseFromString(str, 'text/html');
     } catch {
         console.info("autodiscover could not parse HTML for links!");
     }

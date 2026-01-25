@@ -59,6 +59,8 @@ class RSSParser {
             feed.description = XPath.lookup(root, '/Channel/description');
             feed.homepage    = XPath.lookup(root, '/Channel/link');
 
+            NamespaceParser.parseFeed(root, "/Channel", feed);
+
             XPath.foreach(root, '/Channel/items/item', this.parseItem, { root, feed });
         }
 
@@ -68,6 +70,8 @@ class RSSParser {
             feed.title       = XPath.lookup(root, '/rss/channel/title');
             feed.description = XPath.lookup(root, '/rss/channel/description');
             feed.homepage    = XPath.lookup(root, '/rss/channel/link');
+
+            NamespaceParser.parseFeed(root, "/rss/channel", feed);
 
             XPath.foreach(root, '/rss/channel/item', this.parseItem, { root, feed });
         }
