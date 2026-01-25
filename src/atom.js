@@ -35,6 +35,28 @@ class AtomParser {
                 }
         }
 
+        static parseEntryContent(node, item) {
+                let type = XPath.lookup(node, '@type') || 'text';
+                let result;
+
+                if(type === 'html' || type === 'text/html') {
+                        result = node.textContent.replace(/&lt;/g, '<')
+                                                 .replace(/&gt;/g, '>');
+                } else if(type === 'xhtml') {
+                        // FIXME: strip the outer <div> added by Atom
+                        result = node.firstElementChild?.innerHTML || node.innerHTML;
+                } else {
+                        result = node.textContent.replace(/&/g, '&amp;')
+                                                 .replace(/</g, '&lt;')
+                                                 .replace(/>/g, '&gt;')
+                                                 .replace(/"/g, '&quot;')
+                                                 .replace(/'/g, '&#39;');
+                }
+
+                if(result && result.length > item.description?.length)
+                        item.description = result;
+        }
+
         static parseEntry(node, ctxt) {
                 let item = {
                         title       : XPath.lookup(node, 'ns:title'),
@@ -46,6 +68,7 @@ class AtomParser {
 
                 NamespaceParser.parseItem(ctxt.root, node, item);
 
+                XPath.foreach(node, 'ns:content', AtomParser.parseEntryContent, item);
                 XPath.foreach(node, 'ns:link', AtomParser.parseEntryLink, item);
 
                 ctxt.feed.newItems.push(item);
