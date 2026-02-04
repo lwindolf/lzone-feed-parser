@@ -14,6 +14,7 @@
 // 3.) links poiting to smaller icons
 
 import { XPath } from './xpath.js';
+import { safeURL } from './autodiscover.js';
 
 class Favicon {
     // we prefer XPath
@@ -101,20 +102,8 @@ class Favicon {
                 .then((response) => response.text())
                 .then(() => url + '/favicon.ico');
 
-        if(result) {
-            console.log(`favicon discovery found '${result}'`);
-            if(result.includes('://'))
-                return result;
-            else {
-                // FIXME: support base URL + absolute path (e.g. for rbb24 favicon)
-                if(result.startsWith('/'))
-                    return url + result;
-                else
-                    return url + '/' + result;
-            }
-        } else {
-            console.log("favicon discovery nothing found");
-        }
+        if(result)
+            return safeURL(result, url);
     }
 }
 

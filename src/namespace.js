@@ -5,6 +5,7 @@
 import { DateParser } from './date.js';
 import { XPath } from './xpath.js';
 import { addMedia } from './enclosure.js';
+import { safeURL } from './autodiscover.js';
 
 export class NamespaceParser {
     /**
@@ -71,7 +72,7 @@ export class NamespaceParser {
         // Webfeeds support
         if (nsList.includes('webfeeds')) {
             if (!feed.icon)
-                feed.icon = XPath.lookup(node, 'webfeeds:icon');
+                feed.icon = safeURL(XPath.lookup(node, 'webfeeds:icon'));
         }
     }
 
@@ -138,7 +139,7 @@ export class NamespaceParser {
             XPath.foreach(node, 'media:content', (n) => {
                 addMedia(
                     item,
-                    XPath.lookup(n, '@url'),
+                    safeURL(XPath.lookup(n, '@url')),
                     XPath.lookup(n, '@type') || XPath.lookup(n, '@medium'),
                     XPath.lookup(n, '@duration')
                 );

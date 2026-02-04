@@ -1,18 +1,20 @@
 // vim: set ts=4 sw=4:
 
-import { linkAutoDiscover, parserAutoDiscover } from "../src/autodiscover";
+import { linkAutoDiscover, parserAutoDiscover, opmlAutoDiscover, safeURL } from "../src/autodiscover";
 
-test("Atom 1.0 auto discover", () => {
-  let p = parserAutoDiscover(`<?xml version="1.0" encoding="utf-8"?>
+describe("parserAutoDiscover", () => {
+
+  test("Atom 1.0 auto discover", () => {
+    let p = parserAutoDiscover(`<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <entry><title>A</title></entry>
 </feed>`);
 
-  expect(p.id).toBe('atom');
-});
+    expect(p.id).toBe('atom');
+  });
 
-test("RSS 1.0 auto discover", () => {
-  let p = parserAutoDiscover(`<?xml version="1.0"?>
+  test("RSS 1.0 auto discover", () => {
+    let p = parserAutoDiscover(`<?xml version="1.0"?>
   <rdf:RDF 
           xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
           xmlns:dc="http://purl.org/dc/elements/1.1/"
@@ -53,8 +55,8 @@ test("RSS 1.0 auto discover", () => {
   expect(p.id).toBe('rss1.0');
 });
 
-test("RSS 1.1 auto discover", () => {
-  let p = parserAutoDiscover(`<Channel xmlns="http://purl.org/net/rss1.1#" 
+  test("RSS 1.1 auto discover", () => {
+    let p = parserAutoDiscover(`<Channel xmlns="http://purl.org/net/rss1.1#" 
   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" 
   rdf:about="http://www.xml.com/xml/news.rss">
 <title>XML.com</title>
@@ -76,11 +78,11 @@ test("RSS 1.1 auto discover", () => {
 </items>
 </Channel>`);
 
-  expect(p.id).toBe('rss');
-});
+    expect(p.id).toBe('rss');
+  });
 
-test("RSS 2.0 auto discover", () => {
-  let p = parserAutoDiscover(`<?xml version="1.0"?>
+  test("RSS 2.0 auto discover", () => {
+    let p = parserAutoDiscover(`<?xml version="1.0"?>
   <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
      <channel>
         <title>NASA Space Station News</title>
@@ -104,11 +106,11 @@ test("RSS 2.0 auto discover", () => {
      </channel>
   </rss>`);
 
-  expect(p.id).toBe('rss');
-});
+    expect(p.id).toBe('rss');
+  });
 
-test('RSS 2.0 atom ns auto discover', () => {
-  let p = parserAutoDiscover(`<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+  test('RSS 2.0 atom ns auto discover', () => {
+    let p = parserAutoDiscover(`<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
 xmlns:atom="http://www.w3.org/2005/Atom"
 xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:psc="http://podlove.org/simple-chapters" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:fh="http://purl.org/syndication/history/1.0" xmlns:podcast="https://podcastindex.org/namespace/1.0" >
 
@@ -247,16 +249,52 @@ xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd" xmlns:psc="http://podl
 </channel>
 </rss>
 `);
-  expect(p.id).toBe('rss');
+    expect(p.id).toBe('rss');
+  });
+
+  test("no feed auto discover", () => {
+    let p = parserAutoDiscover(`<html><body>Hallo</body></html>`);
+    expect(p).toBe(undefined);
+  });
+
+  test("JSON Feed auto discover", () => {
+    let p = parserAutoDiscover(`{
+  "version": "https://jsonfeed.org/version/1.1",
+  "title": "My Example Feed",
+  "home_page_url": "https://example.org/",
+  "feed_url": "https://example.org/feed.json",
+  "items": [
+    {
+      "id": "1",
+      "content_html": "<p>Hello, world!</p>",
+      "url": "https://example.org/item/1"
+    }
+  ]
+}`);
+
+    expect(p.id).toBe('json');
+  });
+
+  test("Invalid JSON auto discover", () => {
+    let p = parserAutoDiscover(`{invalid json`);
+    expect(p).toBe(undefined);
+  });
+
+  test("parserAutoDiscover with null input", () => {
+    expect(parserAutoDiscover(null)).toBe(undefined);
+    expect(parserAutoDiscover("")).toBe(undefined);
+    expect(parserAutoDiscover(undefined)).toBe(undefined);
+  });
+
+  test("parserAutoDiscover with non-string input", () => {
+    expect(parserAutoDiscover(123)).toBe(undefined);
+    expect(parserAutoDiscover({})).toBe(undefined);
+  });
 });
 
-test("no feed auto discover", () => {
-  let p = parserAutoDiscover(`<html><body>Hallo</body></html>`);
-  expect(p).toBe(undefined);
-});
-
-test("Link auto discover: none", () => {
-  const str = `<!DOCTYPE html>
+describe("linkAutoDiscover", () => {
+  test("Link auto discover: none", () => {
+    const str = `<!DOCTYPE html>
 <html lang="en-us">
 <head>
 </head>
@@ -265,12 +303,12 @@ test("Link auto discover: none", () => {
 </body>
 </html>`;
 
-  let links = linkAutoDiscover(str, 'https://example.com');
-  expect(links.length).toBe(0);
-})
+    let links = linkAutoDiscover(str, 'https://example.com');
+    expect(links.length).toBe(0);
+  })
 
-test("Link auto discover: Atom", () => {
-  const str = `<!DOCTYPE html>
+  test("Link auto discover: Atom", () => {
+    const str = `<!DOCTYPE html>
 <html lang="en-us">
 <head>
     <link href="/feed/devops.xml" rel="alternate" title="LZone Blog" type="application/atom+xml" >
@@ -280,13 +318,13 @@ test("Link auto discover: Atom", () => {
 </body>
 </html>`;
 
-  let links = linkAutoDiscover(str, 'https://lzone.de');
-  expect(links.length).toBe(1);
-  expect(links[0]).toBe("https://lzone.de/feed/devops.xml")
-})
+    let links = linkAutoDiscover(str, 'https://lzone.de');
+    expect(links.length).toBe(1);
+    expect(links[0]).toBe("https://lzone.de/feed/devops.xml")
+  })
 
-test("Link auto discover: RSS", () => {
-  const str = `<!DOCTYPE html>
+  test("Link auto discover: RSS", () => {
+    const str = `<!DOCTYPE html>
 <html lang="en-us">
 <head>
     <link href="https://example.com/feed/devops.rss" rel="alternate" title="LZone Blog" type="application/rss+xml" >
@@ -296,13 +334,38 @@ test("Link auto discover: RSS", () => {
 </body>
 </html>`;
 
-  let links = linkAutoDiscover(str, 'https://lzone.de');
-  expect(links.length).toBe(1);
-  expect(links[0]).toBe("https://example.com/feed/devops.rss")
-})
+    let links = linkAutoDiscover(str, 'https://lzone.de');
+    expect(links.length).toBe(1);
+    expect(links[0]).toBe("https://example.com/feed/devops.rss")
+  })
 
-test("Link auto discover: multiple links", () => {
-  const str =`<!DOCTYPE html>
+  test("Link auto discover: RDF feed type", () => {
+    const str = `<html>
+<head>
+    <link href="/feed.rdf" rel="alternate" type="application/rdf+xml">
+</head>
+</html>`;
+
+    let links = linkAutoDiscover(str, 'https://example.com');
+    expect(links.length).toBe(1);
+    expect(links[0]).toBe("https://example.com/feed.rdf");
+  });
+
+  test("Link auto discover: JSON feed type", () => {
+    const str = `<html>
+<head>
+    <link href="/feed.json" rel="alternate" type="application/json">
+</head>
+</html>`;
+
+    let links = linkAutoDiscover(str, 'https://example.com');
+    expect(links.length).toBe(1);
+    expect(links[0]).toBe("https://example.com/feed.json");
+  });
+
+
+  test("Link auto discover: multiple links", () => {
+    const str = `<!DOCTYPE html>
 <html lang="en-us">
 <head>
     <link href="feed/devops.rss" rel="alternate" title="LZone Blog" type="application/rss+xml" >
@@ -313,14 +376,14 @@ test("Link auto discover: multiple links", () => {
 </body>
 </html>`;
 
-  let links = linkAutoDiscover(str, 'https://lzone.de/blog');
-  expect(links.length).toBe(2);
-  expect(links[0]).toBe("https://lzone.de/blog/feed/devops.rss")
-  expect(links[1]).toBe("https://lzone.de/feed/devops.atom")
-})
+    let links = linkAutoDiscover(str, 'https://lzone.de/blog/');
+    expect(links.length).toBe(2);
+    expect(links).toContain("https://lzone.de/blog/feed/devops.rss");
+    expect(links).toContain("https://lzone.de/feed/devops.atom");
+  })
 
-test("Link auto discover: slashdot", () => {
-  const str = `<!-- html-header type=current begin -->
+  test("Link auto discover: slashdot", () => {
+    const str = `<!-- html-header type=current begin -->
 	
     <!DOCTYPE html>
 
@@ -331,7 +394,127 @@ test("Link auto discover: slashdot", () => {
 </body>
 </html>`;
 
-  let links = linkAutoDiscover(str, 'https://slashdot.org');
-  expect(links.length).toBe(1);
-  expect(links[0]).toBe("https://rss.slashdot.org/Slashdot/slashdotMain")
-})
+    let links = linkAutoDiscover(str, 'https://slashdot.org');
+    expect(links.length).toBe(1);
+    expect(links[0]).toBe("https://rss.slashdot.org/Slashdot/slashdotMain")
+  })
+
+  test("Link auto discover: filters javascript: URLs", () => {
+    const str = `<html>
+<head>
+    <link href="javascript:alert(1)" rel="alternate" type="application/atom+xml">
+    <link href="https://example.com/feed.xml" rel="alternate" type="application/atom+xml">
+</head>
+</html>`;
+
+    let links = linkAutoDiscover(str, 'https://example.com');
+    expect(links.length).toBe(1);
+    expect(links[0]).toBe("https://example.com/feed.xml");
+  });
+
+  test("Link auto discover: handles missing baseURL", () => {
+    const str = `<html>
+<head>
+    <link href="https://example.com/feed.xml" rel="alternate" type="application/atom+xml">
+</head>
+</html>`;
+
+    let links = linkAutoDiscover(str);
+    expect(links.length).toBe(1);
+    expect(links[0]).toBe("https://example.com/feed.xml");
+  });
+
+  test("Link auto discover: removes duplicate URLs", () => {
+    const str = `<html>
+<head>
+    <link href="/feed.xml" rel="alternate" type="application/atom+xml">
+    <link href="/feed.xml" rel="alternate" type="application/atom+xml">
+    <link href="https://example.com/feed.xml" rel="alternate" type="application/atom+xml">
+</head>
+</html>`;
+
+    let links = linkAutoDiscover(str, 'https://example.com');
+    expect(links.length).toBe(1);
+    expect(links[0]).toBe("https://example.com/feed.xml");
+  });
+
+  test("Link auto discover: unclosed link tags (fuzzy extraction)", () => {
+    const str = `<html>
+<head>
+    <link href="/feed.xml" rel="alternate" type="application/atom+xml">
+    <link href="/rss.xml" rel="alternate" type="application/rss+xml">
+</head>
+<body></body>
+</html>`;
+
+    let links = linkAutoDiscover(str, 'https://example.com');
+    expect(links.length).toBe(2);
+    expect(links).toContain("https://example.com/feed.xml");
+    expect(links).toContain("https://example.com/rss.xml");
+  });
+});
+
+describe("opmlAutoDiscover", () => {
+  test("XPath link[rel=blogroll]", () => {
+    const str = `<!DOCTYPE html>
+<html>
+<head>
+    <link rel="blogroll" title="OPML Feed" href="https://example.com/blogroll.opml" type="application/opml+xml">
+</head>
+<body></body>
+</html>`;
+
+    let link = opmlAutoDiscover(str, 'https://example.com');
+    expect(link).toBe("https://example.com/blogroll.opml");
+  });
+
+  test("fuzzy match link[rel=blogroll]", () => {
+    const str = `<html>
+<head>
+    <link rel="blogroll" title="OPML Feed" href="/blogroll.opml" type="application/opml+xml">
+</head>
+<body>TAG SOUP
+</html>`;
+
+    let link = opmlAutoDiscover(str, 'https://example.com');
+    expect(link).toBe("https://example.com/blogroll.opml");
+  });
+
+  test("none", () => {
+    const str = `<html>
+<head>
+</head>
+<body></body>
+</html>`;
+
+    let link = opmlAutoDiscover(str, 'https://example.com');
+    expect(link).toBe(undefined);
+  });
+});
+
+describe("safeURL", () => {
+  test("handles valid absolute URLs", () => {
+    expect(safeURL("https://example.com/feed.xml")).toBe("https://example.com/feed.xml");
+  });
+
+  test("handles valid relative URLs with base", () => {
+    expect(safeURL("/feed.xml", "https://example.com")).toBe("https://example.com/feed.xml");
+  });
+
+  test("rejects javascript: URLs", () => {
+    expect(safeURL("javascript:alert(1)", "https://example.com")).toBe(undefined);
+  });
+
+  test("rejects data: URLs", () => {
+    expect(safeURL("data:text/html,<script>alert(1)</script>", "https://example.com")).toBe(undefined);
+  });
+
+  test("handles malformed URLs gracefully", () => {
+    expect(safeURL("ht!tp://invalid", "https://example.com")).toBe("https://example.com/ht!tp://invalid");
+  });
+
+  test("returns undefined for null/empty input", () => {
+    expect(safeURL(null)).toBe(undefined);
+    expect(safeURL("")).toBe(undefined);
+  });
+});

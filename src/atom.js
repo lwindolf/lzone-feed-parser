@@ -8,6 +8,7 @@ import { FeedParser } from './parser.js';
 import { DateParser } from './date.js';
 import { NamespaceParser } from './namespace.js'
 import { XPath } from './xpath.js';
+import { safeURL } from './autodiscover.js';
 
 class AtomParser {
         static id = 'atom';
@@ -26,13 +27,13 @@ class AtomParser {
                             ((rel && rel === 'alternate') ||
                              (rel && rel === 'self' && type === 'text/html'))) {
                                 ctxt.sourceType = 'alternate_or_text/html';
-                                ctxt.source = href;
+                                ctxt.source = safeURL(href);
                                 return
                         }
 
                         // But also allow for a plain link
                         if(!ctxt.source)
-                                ctxt.source = href;
+                                ctxt.source = safeURL(href);
                 }
         }
 
@@ -90,8 +91,8 @@ class AtomParser {
                         title       : XPath.lookup(root, '/ns:feed/ns:title'),
                         icon        : XPath.lookup(root, '/ns:feed/ns:icon'),
                         description : XPath.lookup(root, '/ns:feed/ns:summary'),
-                        homepage    : XPath.lookup(root, "/ns:feed/ns:link[@rel='alternate']/@href") ||
-                                      XPath.lookup(root, "/ns:feed/ns:link/@href"),
+                        homepage    : safeURL(XPath.lookup(root, "/ns:feed/ns:link[@rel='alternate']/@href") ||
+                                              XPath.lookup(root, "/ns:feed/ns:link/@href")),
                         newItems    : []
                 };
                 NamespaceParser.parseFeed(root, "/ns:feed", feed);

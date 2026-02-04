@@ -5,6 +5,7 @@
 import { FeedParser } from './parser.js';
 import { NamespaceParser } from './namespace.js'
 import { XPath } from './xpath.js';
+import { safeURL } from './autodiscover.js';
 
 class RDFParser {
 	static id = 'rss1.0';
@@ -19,7 +20,7 @@ class RDFParser {
 		let item = {
 			title       : XPath.lookup(node, 'ns:title'),
 			description : XPath.lookup(node, 'ns:description'),
-			source      : XPath.lookup(node, 'ns:link'),
+			source      : safeURL(XPath.lookup(node, 'ns:link')),
 		};
 
 		NamespaceParser.parseItem(ctxt.root, node, item);
@@ -42,7 +43,7 @@ class RDFParser {
 			feed.ns          = NamespaceParser.getNamespaces(root, str);
 			feed.title       = XPath.lookup(root, '/rdf:RDF/ns:channel/ns:title');
 			feed.description = XPath.lookup(root, '/rdf:RDF/ns:channel/ns:description');
-			feed.homepage    = XPath.lookup(root, '/rdf:RDF/ns:channel/ns:link');
+			feed.homepage    = safeURL(XPath.lookup(root, '/rdf:RDF/ns:channel/ns:link'));
 
 			NamespaceParser.parseFeed(root, "/rdf:RDF/ns:channel", feed);
 

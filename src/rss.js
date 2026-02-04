@@ -8,6 +8,7 @@ import { DateParser } from './date.js';
 import { NamespaceParser } from './namespace.js'
 import { XPath } from './xpath.js';
 import { addMedia } from './enclosure.js';
+import { safeURL } from './autodiscover.js';
 
 class RSSParser {
     static id = 'rss';
@@ -23,7 +24,7 @@ class RSSParser {
         let item = {
             title       : XPath.lookup(node, 'title'),
             description : XPath.lookup(node, 'description'),
-            source      : XPath.lookup(node, 'link'),
+            source      : safeURL(XPath.lookup(node, 'link')),
             // RSS 2.0 only
             sourceId    : XPath.lookup(node, 'guid'),
             time        : DateParser.parse(XPath.lookup(node, 'pubDate'))
@@ -32,7 +33,7 @@ class RSSParser {
         XPath.foreach(node, 'enclosure', (n) => 
             addMedia(
                 item,
-                XPath.lookup(n, '@url'),
+                safeURL(XPath.lookup(n, '@url')),
                 XPath.lookup(n, '@type')
             )
         );
@@ -57,7 +58,7 @@ class RSSParser {
             feed.type        = 'rss1.1';
             feed.title       = XPath.lookup(root, '/Channel/title');
             feed.description = XPath.lookup(root, '/Channel/description');
-            feed.homepage    = XPath.lookup(root, '/Channel/link');
+            feed.homepage    = safeURL(XPath.lookup(root, '/Channel/link'));
 
             NamespaceParser.parseFeed(root, "/Channel", feed);
 
@@ -69,7 +70,7 @@ class RSSParser {
             feed.type        = 'rss2.0';
             feed.title       = XPath.lookup(root, '/rss/channel/title');
             feed.description = XPath.lookup(root, '/rss/channel/description');
-            feed.homepage    = XPath.lookup(root, '/rss/channel/link');
+            feed.homepage    = safeURL(XPath.lookup(root, '/rss/channel/link'));
 
             NamespaceParser.parseFeed(root, "/rss/channel", feed);
 
