@@ -54,7 +54,7 @@ class RSSParser {
         };
 
         // RSS 1.1
-        if (doc.firstChild.nodeName === 'Channel') {
+        if (root.nodeName === 'Channel') {
             feed.type        = 'rss1.1';
             feed.title       = XPath.lookup(root, '/Channel/title');
             feed.description = XPath.lookup(root, '/Channel/description');
@@ -66,14 +66,13 @@ class RSSParser {
         }
 
         // RSS 2.0
-        if (doc.firstChild.nodeName === 'rss') {
+        if (root.nodeName === 'rss') {
             feed.type        = 'rss2.0';
             feed.title       = XPath.lookup(root, '/rss/channel/title');
             feed.description = XPath.lookup(root, '/rss/channel/description');
             feed.homepage    = safeURL(XPath.lookup(root, '/rss/channel/link'));
 
             NamespaceParser.parseFeed(root, "/rss/channel", feed);
-
             XPath.foreach(root, '/rss/channel/item', this.parseItem, { root, feed });
         }
 
