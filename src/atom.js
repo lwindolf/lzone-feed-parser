@@ -60,7 +60,7 @@ class AtomParser {
         }
 
         static parseEntry(node, ctxt) {
-                if (ctxt.feed.itemCount >= FeedParser.maxItems)
+                if (ctxt.feed.newItems.length >= FeedParser.maxItems)
                         return;
 
                 let item = {
