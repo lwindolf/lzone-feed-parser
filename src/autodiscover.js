@@ -86,6 +86,10 @@ function opmlAutoDiscover(str, baseURL) {
         }
     }
 
+    // Fuzzy match .well-known endpoint
+    if (!result && str.includes('/.well-known/recommendations.opml'))
+        result = new URL('/.well-known/recommendations.opml', baseURL).href;
+
     return safeURL(result, baseURL);
 }
 
