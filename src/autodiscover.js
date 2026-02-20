@@ -63,6 +63,11 @@ function opmlAutoDiscover(str, baseURL) {
         const n = doc.head.querySelector('link[rel="blogroll"]');
         if (n)
             result = n.getAttribute('href');
+
+        // Provide well-known OPML for some services
+        // match micro.blog instances which have OPML blogrolls
+        if (!result && doc.head.querySelector('link[rel="subscribe"][href="https://micro.blog/users/follow"]'))
+            result = new URL('/.well-known/recommendations.opml', baseURL).href;
     }
 
     // Fuzzy extract link tag from HTML string
