@@ -54,6 +54,7 @@ class Favicon {
             let doc = await fetch(url, fetchOptions)
                 .then((response) => response.text())
                 .then((str) => {
+                    html = str;
                     return new DOMParser().parseFromString(str, 'text/html');
                 });
 
