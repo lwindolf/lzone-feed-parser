@@ -41,7 +41,7 @@ class JSONFeedParser {
         };
 
         if (data.items && Array.isArray(data.items))
-                data.items.forEach(this.parseItem, { feed });
+            data.items.forEach(i => this.parseItem(i, { feed }));
 
         return feed;
     }
