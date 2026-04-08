@@ -95,6 +95,15 @@ function opmlAutoDiscover(str, baseURL) {
     if (!result && str.includes('/.well-known/recommendations.opml'))
         result = new URL('/.well-known/recommendations.opml', baseURL).href;
 
+    // LiveJournal OPML endpoint (https://www.livejournal.com/support/faq/149.html)
+    if (!result && str.includes('.livejournal.com/')) {
+        const ljUserMatch = /\/\/([^\/\s]+).livejournal\.com/.exec(str);
+        if (ljUserMatch) {
+            const ljUser = ljUserMatch[1];
+            result = new URL('http://www.livejournal.com/tools/opml.bml?user=' + ljUser).href;
+        }
+    }
+
     return safeURL(result, baseURL);
 }
 
