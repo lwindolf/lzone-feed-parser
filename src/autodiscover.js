@@ -97,7 +97,7 @@ function opmlAutoDiscover(str, baseURL) {
 
     // LiveJournal OPML endpoint (https://www.livejournal.com/support/faq/149.html)
     if (!result && str.includes('.livejournal.com/')) {
-        const ljUserMatch = /\/\/([^\/\s]+).livejournal\.com/.exec(str);
+        const ljUserMatch = /\/\/([^\/\s]+).livejournal\.com/.exec(baseURL);
         if (ljUserMatch) {
             const ljUser = ljUserMatch[1];
             result = new URL('http://www.livejournal.com/tools/opml.bml?user=' + ljUser).href;
