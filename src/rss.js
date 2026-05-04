@@ -10,6 +10,8 @@ import { XPath } from './xpath.js';
 import { addMedia } from './enclosure.js';
 import { safeURL } from './autodiscover.js';
 
+const parser = new DOMParser();
+
 class RSSParser {
     static id = 'rss';
     static autoDiscover = [
@@ -44,7 +46,6 @@ class RSSParser {
     }
 
     static parse(str) {
-        const parser = new DOMParser();
         const doc = parser.parseFromString(str, 'application/xml');
         const root = NamespaceParser.getRootNode(doc);
         let feed = {

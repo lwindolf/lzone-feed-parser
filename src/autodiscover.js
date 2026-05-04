@@ -13,6 +13,7 @@ import { JSONFeedParser } from './jsonfeed.js';
 import { NamespaceParser } from './namespace.js';
 
 const MAX_LINKS_TO_PROCESS = 100;
+const parser = new DOMParser();
 
 // Return a parser class matching the given document string or undefined
 function parserAutoDiscover(str) {
@@ -30,7 +31,6 @@ function parserAutoDiscover(str) {
     }
 
     let parsers = [AtomParser, RSSParser, RDFParser];
-    const parser = new DOMParser();
     const doc = parser.parseFromString(str, 'application/xml');
     let root = NamespaceParser.getRootNode(doc);
 
@@ -53,7 +53,7 @@ function opmlAutoDiscover(str, baseURL) {
 
     // Try to parse as HTML
     try {
-        doc = new window.DOMParser().parseFromString(str, 'text/html');
+        doc = parser.parseFromString(str, 'text/html');
     } catch {
         console.info("autodiscover could not parse HTML for links!");
     }
@@ -125,7 +125,7 @@ function linkAutoDiscover(str, baseURL) {
 
     // Try to parse as HTML
     try {
-        doc = new DOMParser().parseFromString(str, 'text/html');
+        doc = parser.parseFromString(str, 'text/html');
     } catch {
         console.info("autodiscover could not parse HTML for links!");
     }

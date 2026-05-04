@@ -7,6 +7,8 @@ import { NamespaceParser } from './namespace.js'
 import { XPath } from './xpath.js';
 import { safeURL } from './autodiscover.js';
 
+const parser = new DOMParser();
+
 class RDFParser {
 	static id = 'rss1.0';
 	static autoDiscover = [
@@ -29,7 +31,6 @@ class RDFParser {
 	}
 
 	static parse(str) {
-		const parser = new DOMParser();
 		const doc = parser.parseFromString(str, 'application/xml');
 		const root = NamespaceParser.getRootNode(doc);
 		let feed = {

@@ -4,7 +4,7 @@
     "description": "Very simple feed parsing lib",
     "type": "module",
     "scripts": {
-        "test": "eslint src/ && jest --coverage"
+        "test": "npx eslint src/ && npx jest --coverage"
     },
     "dependencies": {
     },

@@ -2,6 +2,8 @@
 
 // XPath convenience helpers
 
+const parser = new DOMParser();
+
 class XPath {
         static evaluate(node, expr) {
                 // Workaround https://github.com/jsdom/jsdom/issues/2997
@@ -12,7 +14,7 @@ class XPath {
                 // Register a default resolver, otherwise we could not read Atom/RDF feeds
                 let resolver = (function (element) {
                         let resolver = element.ownerDocument.createNSResolver(element);
-                        let defaultNS = (new window.DOMParser).parseFromString(node.outerHTML, "text/xml").children[0].getAttribute("xmlns");
+                        let defaultNS = parser.parseFromString(node.outerHTML, "text/xml").children[0].getAttribute("xmlns");
 
                         return function (prefix) {
                                 return resolver.lookupNamespaceURI(prefix) || defaultNS;
